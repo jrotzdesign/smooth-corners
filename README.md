@@ -132,7 +132,7 @@ Compared with the published Figma numbers for 90° corners, the results match to
 | `Install …` / `Uninstall …` | Installers and uninstallers for macOS and Windows |
 | `LICENSE` | MIT license |
 
-CEP panels still work in Illustrator 2026. Adobe's current timeline turns CEP off by default in December 2028 and removes it in December 2029. The standalone `.jsx` script is not affected by that timeline.
+CEP panels still work in Illustrator 2026. Adobe plans to retire CEP panels in favor of UXP; the standalone `.jsx` script isn't affected.
 
 ## License
 
