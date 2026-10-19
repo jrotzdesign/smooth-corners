@@ -1,0 +1,2 @@
+# Store every file exactly as it ships in the release zip (the .bat installers keep their CRLF line endings).
+* -text

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest Version="11.0" ExtensionBundleId="com.jro.smoothcorners" ExtensionBundleVersion="1.3.4" ExtensionBundleName="Smooth Corners" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ExtensionList>
+    <Extension Id="com.jro.smoothcorners.panel" Version="1.3.4"/>
+  </ExtensionList>
+  <ExecutionEnvironment>
+    <HostList>
+      <!-- ILST = Illustrator. 28 = 2024, 29 = 2025, 30 = 2026 -->
+      <Host Name="ILST" Version="[28.0,99.9]"/>
+    </HostList>
+    <LocaleList>
+      <Locale Code="All"/>
+    </LocaleList>
+    <RequiredRuntimeList>
+      <RequiredRuntime Name="CSXS" Version="11.0"/>
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+  <DispatchInfoList>
+    <Extension Id="com.jro.smoothcorners.panel">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./index.html</MainPath>
+          <ScriptPath>./jsx/engine.jsx</ScriptPath>
+          <CEFCommandLine>
+            <Parameter>--allow-file-access-from-files</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>true</AutoVisible>
+        </Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>Smooth Corners</Menu>
+          <Geometry>
+            <Size><Height>560</Height><Width>300</Width></Size>
+            <MinSize><Height>200</Height><Width>200</Width></MinSize>
+            <MaxSize><Height>3000</Height><Width>1200</Width></MaxSize>
+          </Geometry>
+          <Icons/>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+</ExtensionManifest>
