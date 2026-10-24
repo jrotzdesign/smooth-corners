@@ -6,19 +6,25 @@
   var $ = function (id) { return document.getElementById(id); };
 
   var STYLES = [
-    { id: "logo", label: "Logo", sub: "fuller curve", mode: "cubic", k: 69.2 },
     { id: "ios", label: "iOS", sub: "Figma 60%", mode: "smooth", smoothing: 60 },
+    { id: "full", label: "Full", sub: "fuller curve", mode: "cubic", k: 69.2 },
     { id: "max", label: "Max smooth", sub: "Figma 100%", mode: "smooth", smoothing: 100 },
     { id: "circle", label: "Circle", sub: "Illustrator default", mode: "smooth", smoothing: 0 }
   ];
 
-  var DEFAULTS = { mode: "cubic", radius: 2.5, unit: "pt", smoothing: 60, k: 69.2, live: true, tab: "doubling",
+  var DEFAULTS = { mode: "smooth", radius: 2.5, unit: "pt", smoothing: 60, k: 69.2, live: true, tab: "doubling",
     cornerMode: "all", picked: { tl: true, tr: true, br: true, bl: true }, perCorner: false,
     sizes: { tl: 2.5, tr: 2.5, br: 2.5, bl: 2.5 }, focus: "tl", scaleMode: "keep" };
   var CORNERS = ["tl", "tr", "br", "bl"];
   var state = load("sc.state", DEFAULTS);
   for (var dk in DEFAULTS) if (!(dk in state)) state[dk] = JSON.parse(JSON.stringify(DEFAULTS[dk]));
   var saved = load("sc.saved", []);
+  // 1.3.5: the Logo style was renamed Full and iOS is the default. Reset to iOS once, then never again.
+  if (!load("sc.v135", false)) {
+    state.mode = "smooth"; state.smoothing = 60;
+    try { localStorage.setItem("sc.v135", "1"); } catch (e) {}
+  }
+  saved.forEach(function (p) { if (p && typeof p.name === "string") p.name = p.name.replace(/^Logo /, "Full "); });
 
   function load(key, def) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
   function store() { try { localStorage.setItem("sc.state", JSON.stringify(state)); localStorage.setItem("sc.saved", JSON.stringify(saved)); } catch (e) {} }
@@ -328,7 +334,7 @@
     });
   };
   $("saveBtn").onclick = function () {
-    var label = (state.mode === "cubic" ? "Logo " + state.k + "%" : "Smooth " + state.smoothing + "%") + " · " + state.radius + (state.unit === "%" ? "%" : state.unit);
+    var label = (state.mode === "cubic" ? "Full " + state.k + "%" : "Smooth " + state.smoothing + "%") + " · " + state.radius + (state.unit === "%" ? "%" : state.unit);
     if (state.cornerMode === "pick") label += " · " + CORNERS.filter(function (c) { return state.picked[c]; }).join("+").toUpperCase();
     saved.push({ name: label, mode: state.mode, radius: state.radius, unit: state.unit, smoothing: state.smoothing, k: state.k,
       cornerMode: state.cornerMode, picked: JSON.parse(JSON.stringify(state.picked)), perCorner: state.perCorner, sizes: JSON.parse(JSON.stringify(state.sizes)) });

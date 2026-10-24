@@ -1,5 +1,5 @@
-/*  Smooth Corners for Adobe Illustrator — v1.3.4
-    Figma / iOS-style corner smoothing + a fuller single-curve 'Logo' corner preset (k = 0.692).
+/*  Smooth Corners for Adobe Illustrator — v1.3.5
+    Figma / iOS-style corner smoothing + a fuller single-curve 'Full' corner preset (k = 0.692).
     Built 2026-10-07. Runs in Illustrator 2024 and newer.  */
 
 /* =====================================================================
@@ -19,8 +19,8 @@
 
    2. "cubic"   — One cubic Bézier per corner with the handles pulled
                   to k × (corner length). k = 0.5523 is a circle,
-                  k = 0.692 is a fuller, logo-style corner that
-                  joins straight edges more gently (the "Logo" preset).
+                  k = 0.692 is a fuller corner that
+                  joins straight edges more gently (the "Full" preset).
 
    Coordinates are plain {x,y}. The engine is orientation-agnostic:
    it works for clockwise or counter-clockwise paths and for
@@ -29,10 +29,10 @@
 
 var SC = (typeof SC !== "undefined") ? SC : {};
 
-SC.VERSION = "1.3.4";
+SC.VERSION = "1.3.5";
 SC.EPS = 1e-6;
 SC.K_CIRCLE = 0.5522847498307936;   // 4/3 * tan(pi/8)
-SC.K_LOGO = 0.692;                  // fuller logo-style corner
+SC.K_FULL = 0.692;                  // fuller single-curve corner
 SC.SMOOTH_IOS = 0.6;                // Figma's "iOS" tick
 
 /* ---------- tiny vector kit ---------- */
@@ -264,7 +264,7 @@ SC.PRESETS = {
   ],
   handle: [
     { id: "circle", label: "Circle", value: 0.5523 },
-    { id: "logo", label: "Logo (PDF)", value: 0.692 },
+    { id: "full", label: "Full", value: 0.692 },
     { id: "square", label: "Squarer", value: 0.8 }
   ]
 };

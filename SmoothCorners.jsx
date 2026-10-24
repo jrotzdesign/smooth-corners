@@ -1,6 +1,6 @@
 #target illustrator
-/*  Smooth Corners for Adobe Illustrator — v1.3.4
-    Figma / iOS-style corner smoothing + a fuller single-curve 'Logo' corner preset (k = 0.692).
+/*  Smooth Corners for Adobe Illustrator — v1.3.5
+    Figma / iOS-style corner smoothing + a fuller single-curve 'Full' corner preset (k = 0.692).
     Built 2026-10-07. Runs in Illustrator 2024 and newer.  */
 
 /* =====================================================================
@@ -20,8 +20,8 @@
 
    2. "cubic"   — One cubic Bézier per corner with the handles pulled
                   to k × (corner length). k = 0.5523 is a circle,
-                  k = 0.692 is a fuller, logo-style corner that
-                  joins straight edges more gently (the "Logo" preset).
+                  k = 0.692 is a fuller corner that
+                  joins straight edges more gently (the "Full" preset).
 
    Coordinates are plain {x,y}. The engine is orientation-agnostic:
    it works for clockwise or counter-clockwise paths and for
@@ -30,10 +30,10 @@
 
 var SC = (typeof SC !== "undefined") ? SC : {};
 
-SC.VERSION = "1.3.4";
+SC.VERSION = "1.3.5";
 SC.EPS = 1e-6;
 SC.K_CIRCLE = 0.5522847498307936;   // 4/3 * tan(pi/8)
-SC.K_LOGO = 0.692;                  // fuller logo-style corner
+SC.K_FULL = 0.692;                  // fuller single-curve corner
 SC.SMOOTH_IOS = 0.6;                // Figma's "iOS" tick
 
 /* ---------- tiny vector kit ---------- */
@@ -265,7 +265,7 @@ SC.PRESETS = {
   ],
   handle: [
     { id: "circle", label: "Circle", value: 0.5523 },
-    { id: "logo", label: "Logo (PDF)", value: 0.692 },
+    { id: "full", label: "Full", value: 0.692 },
     { id: "square", label: "Squarer", value: 0.8 }
   ]
 };
@@ -291,7 +291,7 @@ SC.toPoints = function (value, unit) { return value * (SC.UNITS[unit] || 1); };
 
    optString is a query string, e.g.
      "mode=smooth&radius=12&unit=pt&relative=0&smoothing=0.6&k=0.692"
-   Optional per-corner radii (rectangles / logos), 0 = keep that corner sharp:
+   Optional per-corner radii (rectangles / icons), 0 = keep that corner sharp:
      "...&corners=tl:8,tr:0,br:8,bl:0"
    Each sharp vertex is matched to the nearest corner of the shape's bounds.
 
@@ -404,7 +404,7 @@ SC.AI = (function () {
       var ap = recs[i].applied;
       if (ap && !seen[recs[i].original]) {
         seen[recs[i].original] = true;
-        st.push(recs[i].original + ":" + (ap.mode === "cubic" ? "c" : "s") + "," + f4(ap.radius) + "," + f4(ap.smoothing || 0) + "," + f4(ap.k || SC.K_LOGO) + "," + f4(ap.rel || 0) + "," + (ap.unit || "pt"));
+        st.push(recs[i].original + ":" + (ap.mode === "cubic" ? "c" : "s") + "," + f4(ap.radius) + "," + f4(ap.smoothing || 0) + "," + f4(ap.k || SC.K_FULL) + "," + f4(ap.rel || 0) + "," + (ap.unit || "pt"));
       }
     }
     var rest = stripStored(path.note);
@@ -666,7 +666,7 @@ SC.AI = (function () {
         radius: parseFloat(raw.radius), unit: raw.unit || "pt",
         relative: raw.relative === "1" || raw.relative === "true",
         smoothing: SC.clamp(parseFloat(raw.smoothing || "0.6"), 0, 1),
-        k: parseFloat(raw.k || SC.K_LOGO)
+        k: parseFloat(raw.k || SC.K_FULL)
       };
       o.cornerRadii = null;
       if (raw.corners) {
@@ -677,7 +677,7 @@ SC.AI = (function () {
           if (kv.length === 2 && o.cornerRadii.hasOwnProperty(kv[0])) o.cornerRadii[kv[0]] = Math.max(0, parseFloat(kv[1]) || 0);
         }
       } else if (!(o.radius > 0)) return "err|Radius must be greater than 0.";
-      if (!(o.k > 0)) o.k = SC.K_LOGO;
+      if (!(o.k > 0)) o.k = SC.K_FULL;
       if (isNaN(o.smoothing)) o.smoothing = SC.SMOOTH_IOS;
 
       API.previewBegin();
@@ -905,7 +905,7 @@ SC.AI = (function () {
       if (!(v > 0)) all = false;
       if (ap[i] && (ap[i].mode !== first.mode || Math.abs((ap[i].smoothing || 0) - (first.smoothing || 0)) > 1e-3 || Math.abs((ap[i].k || 0) - (first.k || 0)) > 1e-3)) styleMixed = true;
     }
-    return "ok|has=1|mode=" + first.mode + "|smoothing=" + r3(first.smoothing || 0) + "|k=" + r3(first.k || SC.K_LOGO) +
+    return "ok|has=1|mode=" + first.mode + "|smoothing=" + r3(first.smoothing || 0) + "|k=" + r3(first.k || SC.K_FULL) +
       "|unit=" + unit + "|all=" + (all ? 1 : 0) + "|radius=" + (allVal || 0) +
       "|tl=" + (q.tl || 0) + "|tr=" + (q.tr || 0) + "|br=" + (q.br || 0) + "|bl=" + (q.bl || 0) +
       "|mixed=" + (mixed || styleMixed ? 1 : 0);
@@ -961,7 +961,7 @@ SC.AI = (function () {
   var info0 = SC.AI.info();
   if (info0.indexOf("paths=0") >= 0) { alert("Smooth Corners\n\nSelect one or more paths (or Direct-Select just the anchors you want rounded) and run again."); return; }
 
-  var state = { mode: "cubic", radius: 2.5, unit: "pt", relative: false, smoothing: SC.SMOOTH_IOS, k: SC.K_LOGO, preview: true };
+  var state = { mode: "smooth", radius: 2.5, unit: "pt", relative: false, smoothing: SC.SMOOTH_IOS, k: SC.K_FULL, preview: true };
   var busy = false;
 
   var w = new Window("dialog", "Smooth Corners  ·  Figma / iOS style corners for Illustrator");
@@ -970,8 +970,8 @@ SC.AI = (function () {
   /* ---- mode ---- */
   var gMode = w.add("panel", undefined, "Corner style"); gMode.orientation = "row"; gMode.alignChildren = ["left", "center"]; gMode.margins = [12, 14, 12, 10];
   var rbSmooth = gMode.add("radiobutton", undefined, "Smoothing (Figma / iOS)");
-  var rbCubic = gMode.add("radiobutton", undefined, "Logo curve (fuller single curve)");
-  rbCubic.value = true;
+  var rbCubic = gMode.add("radiobutton", undefined, "Full curve (fuller single curve)");
+  rbSmooth.value = true;
 
   /* ---- radius ---- */
   var gR = w.add("panel", undefined, "Radius"); gR.orientation = "column"; gR.alignChildren = ["fill", "top"]; gR.margins = [12, 14, 12, 10];
@@ -1032,8 +1032,8 @@ SC.AI = (function () {
   var slK = rowK.add("slider", undefined, 69.2, 40, 100); slK.preferredSize.width = 300;
   var etK = rowK.add("edittext", undefined, "69.2"); etK.characters = 5; rowK.add("statictext", undefined, "%");
   var rowKB = gK.add("group"); rowKB.orientation = "row";
-  var bKc = rowKB.add("button", undefined, "Circle  55.2%"); var bKl = rowKB.add("button", undefined, "Logo  69.2%"); var bKs = rowKB.add("button", undefined, "Squarer  80%");
-  gS.visible = false;
+  var bKc = rowKB.add("button", undefined, "Circle  55.2%"); var bKl = rowKB.add("button", undefined, "Full  69.2%"); var bKs = rowKB.add("button", undefined, "Squarer  80%");
+  gK.visible = false;
 
   /* ---- footer ---- */
   var rowF = w.add("group"); rowF.orientation = "row"; rowF.alignChildren = ["left", "center"];

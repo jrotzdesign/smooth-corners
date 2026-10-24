@@ -1,6 +1,6 @@
 # Smooth Corners for Illustrator
 
-Figma-style corner smoothing for Illustrator 2024, 2025 and 2026, plus a fuller **Logo** corner, size presets (including Fibonacci), per-corner radii, and corners that survive scaling.
+Figma-style corner smoothing for Illustrator 2024, 2025 and 2026, plus a fuller single-curve **Full** corner, size presets (including Fibonacci), per-corner radii, and corners that survive scaling.
 
 ## Install (macOS)
 
@@ -29,8 +29,8 @@ It doesn't connect to the internet, collect data, or need admin rights. Run the 
 
 1. Select one or more paths. Groups and compound paths work too.
 2. Pick a **Style**:
-   - **Logo** is a fuller corner: one curve per corner with its handles at 69.2% of the corner length. A circle uses 55.2%.
-   - **iOS** is Figma's 60% smoothing.
+   - **iOS** is Figma's 60% smoothing. The panel opens on this one.
+   - **Full** is a fuller single curve: one curve per corner with its handles at 69.2% of the corner length. A circle uses 55.2%.
    - **Max smooth** is Figma's 100%.
    - **Circle** is Illustrator's normal round corner.
 3. Pick a size preset or type a radius:
@@ -40,7 +40,7 @@ It doesn't connect to the internet, collect data, or need admin rights. Run the 
    - **% of side**: 5, 10, 20, 30% of the shape's shortest side
 4. With **Live** on, the artwork updates as you drag the slider.
 
-For example, the Logo style at 2.5 pt on a 90° corner gives: anchor (0, 2.5), handle (0, 4.23), handle (0.77, 5), anchor (2.5, 5).
+For example, the Full style at 2.5 pt on a 90° corner gives: anchor (0, 2.5), handle (0, 4.23), handle (0.77, 5), anchor (2.5, 5).
 
 ### Selecting a shape shows its settings
 
@@ -57,7 +57,7 @@ When you select a shape rounded with Smooth Corners, the panel switches to that 
 
 There are two ways to round only some corners.
 
-**The corner picker** (panel and dialog) is meant for rectangles and logo shapes:
+**The corner picker** (panel and dialog) is meant for rectangles and icons:
 
 - Click a corner in the little square and only that corner gets rounded. Click more corners to add them, and click a picked corner again to make it sharp.
 - Corners you don't pick stay sharp. **All corners** puts all four back.
@@ -120,7 +120,7 @@ In the panel, **+ Save current as preset** stores the current style and radius u
 
 Compared with the published Figma numbers for 90° corners, the results match to within 1e-5.
 
-**Logo mode** draws a single cubic per corner with handles at `k × corner length`. The Logo preset uses k = 0.692. Compared with a circle, it is fuller at the corner's midpoint (34% of the radius from the sharp vertex, against 41% for a circle) and joins the straight edges more gently.
+**Full mode** draws a single cubic per corner with handles at `k × corner length`. The Full preset uses k = 0.692. Compared with a circle, it is fuller at the corner's midpoint (34% of the radius from the sharp vertex, against 41% for a circle) and joins the straight edges more gently.
 
 ## Files
 
