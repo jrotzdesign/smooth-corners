@@ -105,7 +105,7 @@
   }
 
   /* ---------- UI: size presets ---------- */
-  /* Size chips sit right under the radius field. "Common" is the default scale; Doubling, Fine and Fibonacci come
+  /* Size chips sit right under the radius field and the Scale menu is on the Radius heading row. "Common" is the default scale; Doubling, Fine and Fibonacci come
      from the engine's presets. The % of side chips replace them only while the unit is %. Saved presets get their
      own row underneath. */
   var COMMON = [2, 4, 8, 12, 16, 24];
@@ -133,15 +133,15 @@
       };
       box.appendChild(b);
     });
-    if (!rel) {
-      var wrap = document.createElement("span"); wrap.className = "scale";
-      var lab = document.createElement("span"); lab.textContent = "Scale";
-      var sel = document.createElement("select"); sel.title = "Size scale";
+    // the Scale menu lives on the Radius heading row; it only applies to the pt/px/mm/in chips
+    var sel = $("scale");
+    $("scaleWrap").style.display = rel ? "none" : "";
+    if (sel.options.length !== all.length) {
+      sel.innerHTML = "";
       all.forEach(function (sc) { var o = document.createElement("option"); o.value = sc.id; o.textContent = sc.label; sel.appendChild(o); });
-      sel.value = state.scale;
       sel.onchange = function () { state.scale = sel.value; store(); render(); };
-      wrap.appendChild(lab); wrap.appendChild(sel); box.appendChild(wrap);
     }
+    sel.value = state.scale;
     var sbox = $("savedChips"); sbox.innerHTML = "";
     saved.forEach(function (p, i) {
       var b = document.createElement("button");
