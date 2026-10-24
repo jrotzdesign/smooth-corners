@@ -15,8 +15,8 @@
 <style>
   :root {
     --bg: #2b2b2b; --panel: #323232; --field: #3c3c3c; --field-h: #454545;
-    --line: #444; --text: #e6e6e6; --dim: #9a9a9a; --accent: #3b88e8; --accent-d: #2f6fc0;
-    --ok: #29a191; --warn: #e0a23b; --err: #e5534b;
+    --line: #444; --text: #e6e6e6; --dim: #9a9a9a; --accent: #29A191; --accent-h: #34b5a3;
+    --ok: var(--accent); --warn: #e0a23b; --err: #e5534b;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
@@ -24,6 +24,7 @@
   body { padding: 10px 12px 14px; }
   h2 { font-size: 11px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 7px; }
   h2:first-child { margin-top: 2px; }
+  #smoothBlock > h2, #cubicBlock > h2 { margin-top: 14px; }
   .row { display: flex; gap: 6px; align-items: center; }
   .seg { display: flex; background: var(--field); border-radius: 6px; padding: 2px; }
   .seg button { flex: 1; border: 0; background: transparent; color: var(--dim); padding: 6px 4px; border-radius: 4px; font: inherit; cursor: pointer; }
@@ -31,7 +32,7 @@
   input[type=number], select { background: var(--field); color: var(--text); border: 1px solid transparent; border-radius: 5px; height: 28px; padding: 0 8px; font: inherit; outline: none; }
   input[type=number]:focus, select:focus { border-color: var(--accent); }
   input[type=number] { width: 100%; -moz-appearance: textfield; }
-  input[type=number]::-webkit-inner-spin-button { opacity: .5; }
+  input[type=number]::-webkit-inner-spin-button { opacity: .5; margin-left: 8px; }
   .radius-field { position: relative; flex: 1; }
   .radius-field svg { position: absolute; left: 8px; top: 7px; opacity: .7; }
   .radius-field input { padding-left: 28px; }
@@ -66,11 +67,17 @@
   .btn { flex: 1; height: 30px; border-radius: 6px; border: 0; font: inherit; cursor: pointer; background: var(--field); color: var(--text); }
   .btn:hover { background: var(--field-h); }
   .btn.primary { background: var(--accent); color: #fff; font-weight: 600; }
-  .btn.primary:hover { background: var(--accent-d); }
+  .btn.primary:hover { background: var(--accent-h); }
   .toggle { display: flex; align-items: center; gap: 6px; color: var(--dim); cursor: pointer; margin-top: 10px; }
   .toggle input { margin: 0; }
+  input[type=checkbox], input[type=range] { accent-color: var(--accent); }
   .status { margin-top: 10px; padding: 7px 9px; border-radius: 5px; background: var(--panel); color: var(--dim); min-height: 30px; font-size: 11px; }
   .status.ok { color: #b9e4dc; } .status.err { color: #f2b3ae; }
+
+  .brand { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+  .brand svg { height: 15px; width: auto; display: block; flex: 0 0 auto; }
+  .brand span { font: 10px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+  .hint.warn { color: var(--warn); margin-top: 6px; }
 
   /* corner picker */
   .corner-row { display: flex; gap: 12px; align-items: center; }
@@ -96,8 +103,10 @@
 </style>
 </head>
 <body>
-  <div id="boot" style="color:#9a9a9a;font-size:11px;padding:4px 0 8px">Loading Smooth Corners 1.3.5…</div>
+  <div id="boot" style="color:#9a9a9a;font-size:11px;padding:4px 0 8px">Loading Smooth Corners 1.4.0…</div>
   <pre id="bootError" style="display:none;white-space:pre-wrap;color:#f2b3ae;background:#3a2a2a;padding:8px;border-radius:5px;font-size:11px"></pre>
+
+  <div class="brand"><svg viewBox="0 0 283 235" role="img" aria-label="JRO" xmlns="http://www.w3.org/2000/svg"><path d="M89.00 1.00C89.00 64.17 89.00 127.33 89.00 190.50C89.00 221.30 75.29 235.00 44.50 235.00C29.10 235.00 17.97 231.58 10.70 224.30C3.43 217.02 0.00 205.90 0.00 190.50C0.00 175.33 0.00 160.17 0.00 145.00C11.33 145.00 22.67 145.00 34.00 145.00C34.00 169.83 34.00 194.67 34.00 219.50C34.00 223.14 34.81 225.76 36.52 227.48C38.24 229.19 40.87 230.00 44.50 230.00C51.76 230.00 55.00 226.77 55.00 219.50C55.00 146.67 55.00 73.83 55.00 1.00C66.33 1.00 77.67 1.00 89.00 1.00Z" fill="#ffffff" fill-rule="evenodd"/><path d="M197.80 229.53C197.64 229.36 197.48 229.18 197.32 229.00C189.63 220.42 186.00 207.73 186.00 190.50C186.00 165.33 186.00 140.17 186.00 115.00C186.00 104.46 180.07 95.30 171.36 90.69C181.40 87.31 186.00 79.03 186.00 65.00C186.00 52.83 186.00 40.67 186.00 28.50C186.00 9.47 177.53 1.00 158.50 1.00C138.00 1.00 117.50 1.00 97.00 1.00C97.00 78.67 97.00 156.33 97.00 234.00C108.33 234.00 119.67 234.00 131.00 234.00C131.00 186.83 131.00 139.67 131.00 92.50C134.50 92.50 138.00 92.50 141.50 92.50C148.76 92.50 152.00 95.74 152.00 103.00C152.00 137.50 152.00 172.00 152.00 206.50C152.00 225.54 160.46 234.00 179.50 234.00C186.00 234.00 192.50 234.00 199.00 234.00C199.00 232.92 199.00 231.83 199.00 230.75C198.59 230.36 198.19 229.95 197.80 229.53ZM152.00 77.00C152.00 84.27 148.76 87.50 141.50 87.50C138.00 87.50 134.50 87.50 131.00 87.50C131.00 60.33 131.00 33.17 131.00 6.00C134.50 6.00 138.00 6.00 141.50 6.00C148.76 6.00 152.00 9.24 152.00 16.50C152.00 36.67 152.00 56.83 152.00 77.00Z" fill="#ffffff" fill-rule="evenodd"/><path d="M272.30 10.70C265.02 3.43 253.89 0.00 238.50 0.00C207.70 0.00 194.00 13.71 194.00 44.50C194.00 93.17 194.00 141.83 194.00 190.50C194.00 205.90 197.43 217.02 204.70 224.30C211.97 231.58 223.10 235.00 238.50 235.00C269.29 235.00 283.00 221.30 283.00 190.50C283.00 141.83 283.00 93.17 283.00 44.50C283.00 29.10 279.57 17.98 272.30 10.70ZM249.00 219.50C249.00 226.77 245.76 230.00 238.50 230.00C234.87 230.00 232.24 229.19 230.52 227.48C228.81 225.76 228.00 223.14 228.00 219.50C228.00 151.50 228.00 83.50 228.00 15.50C228.00 8.24 231.23 5.00 238.50 5.00C242.13 5.00 244.76 5.81 246.48 7.53C248.19 9.24 249.00 11.87 249.00 15.50C249.00 83.50 249.00 151.50 249.00 219.50Z" fill="#ffffff" fill-rule="evenodd"/></svg><span>Smooth Corners</span></div>
 
   <h2>Style</h2>
   <div class="chips" id="styleChips"></div>
@@ -158,6 +167,7 @@
       </div>
       <input type="number" class="pct" id="smoothPct" min="0" max="100" step="1" value="60">
     </div>
+    <div class="hint warn" id="tooSmall" style="display:none"></div>
   </div>
 
   <!-- single cubic (Full) -->
@@ -175,7 +185,7 @@
     </div>
   </div>
 
-  <svg class="preview" id="preview" width="120" height="84" viewBox="0 0 120 84"></svg>
+  <svg class="preview" id="preview" width="160" height="112" viewBox="0 0 160 112"></svg>
   <div class="hint" style="text-align:center;margin-top:2px">style preview · dashed = Illustrator round corner</div>
 
   <h2>When I scale a shape</h2>

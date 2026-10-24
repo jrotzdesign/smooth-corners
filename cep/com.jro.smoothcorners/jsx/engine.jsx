@@ -1,4 +1,4 @@
-/*  Smooth Corners for Adobe Illustrator — v1.3.5
+/*  Smooth Corners for Adobe Illustrator — v1.4.0
     Figma / iOS-style corner smoothing + a fuller single-curve 'Full' corner preset (k = 0.692).
     Built 2026-10-07. Runs in Illustrator 2024 and newer.  */
 
@@ -29,7 +29,7 @@
 
 var SC = (typeof SC !== "undefined") ? SC : {};
 
-SC.VERSION = "1.3.5";
+SC.VERSION = "1.4.0";
 SC.EPS = 1e-6;
 SC.K_CIRCLE = 0.5522847498307936;   // 4/3 * tan(pi/8)
 SC.K_FULL = 0.692;                  // fuller single-curve corner

@@ -177,10 +177,12 @@
   /* ---------- preview (same engine) ---------- */
   function renderPreview() {
     var svg = $("preview");
-    var w = 110, h = 74, x0 = 5, y0 = 5;
+    var w = 150, h = 102, x0 = 5, y0 = 5;
     var poly = [{ x: x0, y: y0 }, { x: x0 + w, y: y0 }, { x: x0 + w, y: y0 + h }, { x: x0, y: y0 + h }];
-    // map radius to the preview: absolute → relative to a 74-unit tall box, clamped for readability
-    var r = state.unit === "%" ? Math.min(h / 2, state.radius / 100 * h) : h * 0.4;
+    // Each corner may use at most half of the 102-tall edge (51). Smoothing needs r * (1 + s) of it, so a radius of
+    // h / 4 (25.5) lets 0 to 100% smoothing all fit and look different. Anything bigger hits the engine's cap.
+    var rMax = h / 4;
+    var r = state.unit === "%" ? Math.min(rMax, state.radius / 100 * h) : rMax;
     // preview polygon order (screen, y-down): TL, TR, BR, BL
     var maxR = Math.max.apply(null, CORNERS.map(cornerRadius).concat([0.0001]));
     var per = [], perC = [];
@@ -192,7 +194,7 @@
     });
     var pts = SC.roundPolygon(poly, [], null, true, null, per);
     var circ = SC.roundPolygon(poly, [], null, true, null, perC);
-    svg.innerHTML = '<path d="' + d(pts) + '" fill="#29A191"/><path d="' + d(circ) + '" fill="none" stroke="rgba(255,255,255,.55)" stroke-dasharray="3 3"/>';
+    svg.innerHTML = '<path d="' + d(pts) + '" style="fill:var(--accent)"/><path d="' + d(circ) + '" fill="none" stroke="rgba(255,255,255,.55)" stroke-dasharray="3 3"/>';
   }
   function d(pts) {
     var f = function (n) { return n.toFixed(2); };
@@ -215,7 +217,7 @@
     var pos = { tl: [14, 14], tr: [62, 14], br: [62, 62], bl: [14, 62] };
     CORNERS.forEach(function (c) {
       var on = !pick || state.picked[c];
-      dots += '<circle cx="' + pos[c][0] + '" cy="' + pos[c][1] + '" r="4.5" fill="' + (on ? "#3b88e8" : "#2b2b2b") + '" stroke="' + (on ? "#fff" : "#777") + '" stroke-width="1.5"/>';
+      dots += '<circle cx="' + pos[c][0] + '" cy="' + pos[c][1] + '" r="4.5" style="fill:' + (on ? "var(--accent)" : "#2b2b2b") + '" stroke="' + (on ? "#fff" : "#777") + '" stroke-width="1.5"/>';
     });
     $("pickerSvg").innerHTML = '<path d="' + d(pts) + '" fill="none" stroke="#cfcfcf" stroke-width="2"/>' + dots;
     [].forEach.call(document.querySelectorAll("#cornerSeg button"), function (b) { b.className = b.dataset.cm === state.cornerMode ? "on" : ""; });
@@ -313,7 +315,24 @@
     if (document.activeElement !== $("radius")) $("radius").value = state.radius;
     $("unit").value = state.unit;
     $("live").checked = state.live;
-    renderStyles(); renderPicker(); renderSizes(); drawSmooth(); drawK(); renderPreview(); renderScale();
+    renderStyles(); renderPicker(); renderSizes(); drawSmooth(); drawK(); renderPreview(); renderScale(); renderTooSmall();
+  }
+
+  /* One short line under the smoothing slider when the selected shape has less room than the chosen
+     smoothing needs. Each corner may use half of the shape's shortest side, and smoothing needs
+     r * (1 + s) of it. This is the bounding box of the selection, so it is a hint, not a guarantee. */
+  var selMinSide = 0;
+  function renderTooSmall() {
+    var el = $("tooSmall"), show = false, limit = 0;
+    if (state.mode === "smooth" && selMinSide > 0) {
+      var rPts = Math.max.apply(null, CORNERS.map(cornerRadius).concat([0]));
+      if (state.unit === "%") rPts = rPts / 100 * selMinSide; else rPts = SC.toPoints(rPts, state.unit);
+      if (rPts > 0 && rPts * (1 + state.smoothing / 100) > selMinSide / 2 + 1e-6) {
+        show = true; limit = Math.max(0, Math.floor((selMinSide / 2 / rPts - 1) * 100));
+      }
+    }
+    el.style.display = show ? "block" : "none";
+    if (show) el.textContent = "Shape is too small for full smoothing at this radius (limit about " + limit + "%).";
   }
 
   /* ---------- events ---------- */
@@ -403,6 +422,8 @@
       if (res === "na") return ensureEngine(function () {});
       var r = parse(res);
       if (r.status !== "ok") return;
+      var ms = +r.paths > 0 ? parseFloat(r.minSide) || 0 : 0;
+      if (ms !== selMinSide) { selMinSide = ms; renderTooSmall(); }
       if (+r.fixed) {
         lastInfo = "";
         return setStatus("Corners rebuilt after scaling (" + r.fixed + " shape" + (+r.fixed === 1 ? "" : "s") + "). Undo twice to undo the scale.", "ok");
