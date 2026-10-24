@@ -12,9 +12,9 @@
     { id: "circle", label: "Circle", sub: "Illustrator default", mode: "smooth", smoothing: 0 }
   ];
 
-  var DEFAULTS = { mode: "smooth", radius: 2.5, unit: "pt", smoothing: 60, k: 69.2, live: true, tab: "doubling",
+  var DEFAULTS = { mode: "smooth", radius: 2.5, unit: "pt", smoothing: 60, k: 69.2,live: true,
     cornerMode: "all", picked: { tl: true, tr: true, br: true, bl: true }, perCorner: false,
-    sizes: { tl: 2.5, tr: 2.5, br: 2.5, bl: 2.5 }, focus: "tl", scaleMode: "keep" };
+    sizes: { tl: 2.5, tr: 2.5, br: 2.5, bl: 2.5 }, focus: "tl", scaleMode: "keep", scale: "common" };
   var CORNERS = ["tl", "tr", "br", "bl"];
   var state = load("sc.state", DEFAULTS);
   for (var dk in DEFAULTS) if (!(dk in state)) state[dk] = JSON.parse(JSON.stringify(DEFAULTS[dk]));
@@ -105,42 +105,25 @@
   }
 
   /* ---------- UI: size presets ---------- */
+  /* Size chips sit right under the radius field. "Common" is the default scale; Doubling, Fine and Fibonacci come
+     from the engine's presets. The % of side chips replace them only while the unit is %. Saved presets get their
+     own row underneath. */
+  var COMMON = [2, 4, 8, 12, 16, 24];
+  function scales() {
+    var by = function (id) { return SC.PRESETS.sizeSets.filter(function (s) { return s.id === id; })[0]; };
+    return [{ id: "common", label: "Common", values: COMMON }, { id: "doubling", label: "Doubling", values: by("doubling").values },
+      { id: "fine", label: "Fine", values: by("fine").values }, { id: "fib", label: "Fibonacci", values: by("fib").values }];
+  }
   function renderSizes() {
-    var tabs = $("sizeTabs"); tabs.innerHTML = "";
-    var sets = SC.PRESETS.sizeSets.concat(saved.length ? [{ id: "saved", label: "Saved" }] : []);
-    if (!sets.some(function (s) { return s.id === state.tab; })) state.tab = "doubling";
-    sets.forEach(function (s) {
-      var a = document.createElement("a");
-      a.textContent = s.id === "relative" ? "% of side" : s.label;
-      a.className = s.id === state.tab ? "on" : "";
-      a.onclick = function () { state.tab = s.id; store(); render(); };
-      tabs.appendChild(a);
-    });
     var box = $("sizeChips"); box.innerHTML = "";
-    if (state.tab === "saved") {
-      saved.forEach(function (p, i) {
-        var b = document.createElement("button");
-        b.className = "chip saved";
-        b.innerHTML = p.name + "<b title='Delete'>×</b>";
-        b.onclick = function (e) {
-          if (e.target.tagName === "B") { saved.splice(i, 1); store(); render(); return; }
-          state.mode = p.mode; state.radius = p.radius; state.unit = p.unit; state.smoothing = p.smoothing; state.k = p.k;
-          state.cornerMode = p.cornerMode || "all"; state.perCorner = !!p.perCorner;
-          if (p.picked) state.picked = JSON.parse(JSON.stringify(p.picked));
-          if (p.sizes) state.sizes = JSON.parse(JSON.stringify(p.sizes));
-          changed();
-        };
-        box.appendChild(b);
-      });
-      return;
-    }
-    var set = SC.PRESETS.sizeSets.filter(function (s) { return s.id === state.tab; })[0];
-    set.values.forEach(function (v) {
+    var rel = state.unit === "%", all = scales();
+    if (!all.some(function (s) { return s.id === state.scale; })) state.scale = "common";
+    var values = rel ? SC.PRESETS.sizeSets.filter(function (s) { return s.unit === "%"; })[0].values : all.filter(function (s) { return s.id === state.scale; })[0].values;
+    var unit = rel ? "%" : state.unit;
+    var perC = state.cornerMode === "pick" && state.perCorner;
+    var cur = perC ? +state.sizes[state.focus] : state.radius;
+    values.forEach(function (v) {
       var b = document.createElement("button");
-      // presets use the unit you're working in (switching only into / out of %)
-      var unit = set.unit === "%" ? "%" : (state.unit === "%" ? "pt" : state.unit);
-      var perC = state.cornerMode === "pick" && state.perCorner;
-      var cur = perC ? +state.sizes[state.focus] : state.radius;
       b.className = "chip" + (cur === v && state.unit === unit ? " on" : "");
       b.textContent = v + (unit === "%" ? "%" : "");
       b.title = v + (unit === "%" ? "% of the shortest side" : " " + unit) + (perC ? " → " + NAMES[state.focus] : "");
@@ -149,6 +132,30 @@
         state.unit = unit; changed();
       };
       box.appendChild(b);
+    });
+    if (!rel) {
+      var wrap = document.createElement("span"); wrap.className = "scale";
+      var lab = document.createElement("span"); lab.textContent = "Scale";
+      var sel = document.createElement("select"); sel.title = "Size scale";
+      all.forEach(function (sc) { var o = document.createElement("option"); o.value = sc.id; o.textContent = sc.label; sel.appendChild(o); });
+      sel.value = state.scale;
+      sel.onchange = function () { state.scale = sel.value; store(); render(); };
+      wrap.appendChild(lab); wrap.appendChild(sel); box.appendChild(wrap);
+    }
+    var sbox = $("savedChips"); sbox.innerHTML = "";
+    saved.forEach(function (p, i) {
+      var b = document.createElement("button");
+      b.className = "chip saved";
+      b.innerHTML = p.name + "<b title='Delete'>×</b>";
+      b.onclick = function (e) {
+        if (e.target.tagName === "B") { saved.splice(i, 1); store(); render(); return; }
+        state.mode = p.mode; state.radius = p.radius; state.unit = p.unit; state.smoothing = p.smoothing; state.k = p.k;
+        state.cornerMode = p.cornerMode || "all"; state.perCorner = !!p.perCorner;
+        if (p.picked) state.picked = JSON.parse(JSON.stringify(p.picked));
+        if (p.sizes) state.sizes = JSON.parse(JSON.stringify(p.sizes));
+        changed();
+      };
+      sbox.appendChild(b);
     });
   }
 
@@ -163,13 +170,19 @@
   window.addEventListener("keyup", function (e) { if (e.key === "Alt") altDown = false; });
   window.addEventListener("blur", function () { altDown = false; });
 
+  /* x position of the thumb's center for a 0..1 value: the thumb never leaves the track, so its center travels
+     from half a thumb in to half a thumb in from the other end. Ticks, labels, fill and the invisible native
+     range input (its thumb is sized to match in the CSS) all use this same travel. */
+  var THUMB = 18;
+  function along(f) { return "calc(" + THUMB / 2 + "px + (100% - " + THUMB + "px) * " + f + ")"; }
+
   function bindSlider(wrapId, numId, key, min, max, decimals, ticks) {
     var wrap = $(wrapId), range = wrap.querySelector("input"), num = $(numId), dragging = false, labels = [];
     ticks.forEach(function (t) {
-      var pos = (t.v - min) / (max - min) * 100;
-      var dot = document.createElement("div"); dot.className = "tick"; dot.style.left = pos + "%";
-      var lab = document.createElement("div"); lab.className = "tick-label" + (pos <= 0 ? " l" : pos >= 100 ? " r" : ""); lab.style.left = pos + "%"; lab.textContent = t.label;
-      wrap.insertBefore(dot, wrap.querySelector(".thumb")); wrap.insertBefore(lab, wrap.querySelector(".thumb"));
+      var pos = (t.v - min) / (max - min);
+      var lab = document.createElement("div"); lab.className = "tick-label"; lab.style.left = along(pos); lab.textContent = t.label;
+      if (pos > 0 && pos < 1) { var dot = document.createElement("div"); dot.className = "tick"; dot.style.left = along(pos); wrap.insertBefore(dot, wrap.querySelector(".thumb")); }
+      wrap.insertBefore(lab, wrap.querySelector(".thumb"));
       labels.push({ el: lab, v: t.v });
     });
     function onInput(v) {
@@ -194,9 +207,9 @@
     return function () {
       range.value = state[key];
       if (document.activeElement !== num) num.value = state[key] + (decimals ? "" : "");
-      var pct = (state[key] - min) / (max - min) * 100;
-      wrap.querySelector(".fill").style.width = pct + "%";
-      wrap.querySelector(".thumb").style.left = pct + "%";
+      var f = (state[key] - min) / (max - min);
+      wrap.querySelector(".fill").style.width = along(f);
+      wrap.querySelector(".thumb").style.left = along(f);
       labels.forEach(function (l) { l.el.classList.toggle("on", Math.abs(state[key] - l.v) < 0.001); });
     };
   }
@@ -386,7 +399,7 @@
     if (state.cornerMode === "pick") label += " · " + CORNERS.filter(function (c) { return state.picked[c]; }).join("+").toUpperCase();
     saved.push({ name: label, mode: state.mode, radius: state.radius, unit: state.unit, smoothing: state.smoothing, k: state.k,
       cornerMode: state.cornerMode, picked: JSON.parse(JSON.stringify(state.picked)), perCorner: state.perCorner, sizes: JSON.parse(JSON.stringify(state.sizes)) });
-    state.tab = "saved"; store(); render();
+    store(); render();
     setStatus("Saved “" + label + "”.", "ok");
   };
   document.addEventListener("keydown", function (e) { if (e.key === "Enter") apply(); });
@@ -418,8 +431,6 @@
     }
     // jump to the preset tab that contains this radius, if any
     var rad = state.perCorner ? state.sizes[state.focus] : state.radius;
-    var hit = SC.PRESETS.sizeSets.filter(function (set) { return (set.unit === "%") === (state.unit === "%") && set.values.indexOf(rad) >= 0; })[0];
-    if (hit && !SC.PRESETS.sizeSets.some(function (set) { return set.id === state.tab && set.values.indexOf(rad) >= 0; })) state.tab = hit.id;
     store(); render();                    // render only — never re-apply on selection
   }
   function describeAdopted(r) {
