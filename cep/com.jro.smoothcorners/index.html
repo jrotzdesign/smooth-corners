@@ -31,7 +31,7 @@
   .seg button.on { background: #555; color: #fff; }
   input[type=number], select { background: var(--field); color: var(--text); border: 1px solid transparent; border-radius: 5px; height: 28px; padding: 0 8px; font: inherit; outline: none; }
   input[type=number]:focus, select:focus { border-color: var(--accent); }
-  input[type=number] { width: 100%; -moz-appearance: textfield; }
+  input[type=number] { width: 100%; -moz-appearance: textfield; padding-right: 6px; }
   input[type=number]::-webkit-inner-spin-button { opacity: .5; margin-left: 8px; }
   .radius-field { position: relative; flex: 1; }
   .radius-field svg { position: absolute; left: 8px; top: 7px; opacity: .7; }
@@ -58,6 +58,8 @@
   .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 5px; }
   .tick { position: absolute; top: 13px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: rgba(255,255,255,.55); pointer-events: none; }
   .tick-label { position: absolute; top: 24px; transform: translateX(-50%); color: var(--dim); font-size: 10px; pointer-events: none; }
+  .tick-label.l { transform: none; } .tick-label.r { transform: translateX(-100%); }
+  .tick-label.on { color: var(--accent); }
   .thumb { position: absolute; top: 6px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--accent); border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.5); pointer-events: none; }
   .slider input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; margin: 0; }
   .pct { width: 62px; flex: 0 0 62px; text-align: right; }
@@ -161,7 +163,6 @@
     <div class="slider-wrap slider-block">
       <div class="slider" id="smoothSlider">
         <div class="track"><div class="fill"></div></div>
-        <div class="tick" style="left:60%"></div><div class="tick-label" style="left:60%">iOS</div>
         <div class="thumb"></div>
         <input type="range" min="0" max="100" step="1" value="60">
       </div>
@@ -176,8 +177,6 @@
     <div class="slider-wrap slider-block">
       <div class="slider" id="kSlider">
         <div class="track"><div class="fill"></div></div>
-        <div class="tick" style="left:25.38%"></div><div class="tick-label" style="left:25.38%">circle</div>
-        <div class="tick" style="left:48.67%"></div><div class="tick-label" style="left:48.67%">full</div>
         <div class="thumb"></div>
         <input type="range" min="40" max="100" step="0.1" value="69.2">
       </div>

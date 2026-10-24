@@ -153,15 +153,43 @@
   }
 
   /* ---------- UI: sliders ---------- */
-  function bindSlider(wrapId, numId, key, min, max, decimals) {
-    var wrap = $(wrapId), range = wrap.querySelector("input"), num = $(numId);
+  /* Slider with labelled ticks. While the pointer drags the thumb, a value within SNAP of the range of a tick
+     snaps to the tick's exact value (the browser recomputes the raw value from the pointer on every move, so the
+     snap holds inside the zone and lets go once the pointer leaves it). Holding Option/Alt turns snapping off.
+     Keyboard steps and typing in the number box never snap. */
+  var SNAP = 0.02;
+  var altDown = false;
+  window.addEventListener("keydown", function (e) { if (e.key === "Alt") altDown = true; });
+  window.addEventListener("keyup", function (e) { if (e.key === "Alt") altDown = false; });
+  window.addEventListener("blur", function () { altDown = false; });
+
+  function bindSlider(wrapId, numId, key, min, max, decimals, ticks) {
+    var wrap = $(wrapId), range = wrap.querySelector("input"), num = $(numId), dragging = false, labels = [];
+    ticks.forEach(function (t) {
+      var pos = (t.v - min) / (max - min) * 100;
+      var dot = document.createElement("div"); dot.className = "tick"; dot.style.left = pos + "%";
+      var lab = document.createElement("div"); lab.className = "tick-label" + (pos <= 0 ? " l" : pos >= 100 ? " r" : ""); lab.style.left = pos + "%"; lab.textContent = t.label;
+      wrap.insertBefore(dot, wrap.querySelector(".thumb")); wrap.insertBefore(lab, wrap.querySelector(".thumb"));
+      labels.push({ el: lab, v: t.v });
+    });
     function onInput(v) {
       v = Math.max(min, Math.min(max, parseFloat(v)));
       if (isNaN(v)) return;
       state[key] = +v.toFixed(decimals);
       changed();
     }
-    range.addEventListener("input", function () { onInput(range.value); });
+    function snap(v) {
+      for (var i = 0; i < ticks.length; i++) if (Math.abs(v - ticks[i].v) <= SNAP * (max - min)) return ticks[i].v;
+      return v;
+    }
+    range.addEventListener("pointerdown", function (e) { dragging = true; altDown = e.altKey; });
+    range.addEventListener("pointermove", function (e) { altDown = e.altKey; });
+    window.addEventListener("pointerup", function () { dragging = false; });
+    window.addEventListener("pointercancel", function () { dragging = false; });
+    range.addEventListener("input", function () {
+      var v = parseFloat(range.value);
+      onInput(dragging && !altDown ? snap(v) : v);
+    });
     num.addEventListener("change", function () { onInput(num.value); });
     return function () {
       range.value = state[key];
@@ -169,10 +197,11 @@
       var pct = (state[key] - min) / (max - min) * 100;
       wrap.querySelector(".fill").style.width = pct + "%";
       wrap.querySelector(".thumb").style.left = pct + "%";
+      labels.forEach(function (l) { l.el.classList.toggle("on", Math.abs(state[key] - l.v) < 0.001); });
     };
   }
-  var drawSmooth = bindSlider("smoothSlider", "smoothPct", "smoothing", 0, 100, 0);
-  var drawK = bindSlider("kSlider", "kPct", "k", 40, 100, 1);
+  var drawSmooth = bindSlider("smoothSlider", "smoothPct", "smoothing", 0, 100, 0, [{ v: 0, label: "circle" }, { v: 60, label: "iOS" }, { v: 100, label: "max" }]);
+  var drawK = bindSlider("kSlider", "kPct", "k", 40, 100, 1, [{ v: 55.2, label: "circle" }, { v: 69.2, label: "full" }]);
 
   /* ---------- preview (same engine) ---------- */
   function renderPreview() {
